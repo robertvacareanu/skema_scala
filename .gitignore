@@ -1,0 +1,29 @@
+*.class
+*.log
+
+# Simple Build Tool
+# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
+
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+.history
+.cache
+.lib/
+
+# metals / node files
+project/metals.sbt
+.metals/
+node_modules/
+yarn.lock
+.bloop
+.next/
+## tool for jumping into methods.
+.ctags
+.tags
+
+
+.vscode
