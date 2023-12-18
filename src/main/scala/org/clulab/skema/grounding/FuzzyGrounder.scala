@@ -22,7 +22,26 @@ import org.clulab.skema.indexing.BuildIndex
 import org.clulab.skema.model.GroundingDetails
 
 
-
+/**
+  * This grounder attempts to do "fuzzy matching"
+  * As an example, assuming we search for "dog cat", and we have: 
+  *   - Doc1({"field_a": "dog dog", "field_b": "dog dog cat"})
+  *   - Doc2({"field_a": "dog cat dog", "field_b": "cat dog"})
+  * 
+  * Assuming we search on `field_a` and `field_b`, then Doc1 is a match (because of `field_b`),
+  * and Doc2 is a match (because `field_a`)
+  * This grounder allows for slops (i.e. gaps in between the search phrase)
+  * 
+  *
+  * @param fieldGroups: Seq[Seq[String]] -> Each string (say, if we flatten this), is a field in the doc
+  *                                         They are grouped (i.e. we have Seq[Seq[String]] instead of simply Seq[String])
+  *                                         because of priorities; We first attempt all the field names available in the first
+  *                                         element, then second, etc, as much as needed
+  * @param slops:       Seq[Int]         -> The gaps that are allowed when seaching; 
+  *                                         For example, a slop=0 means no gap (`dog cat` for `dog cat),
+  *                                         a slop=1 means a gap of 1 item (`dog _ cat` for `dog cat`)
+  *                                         a slop=2 means a gap of 2 items (`dog _ _ cat` for `dog cat`), etc
+  */
 class FuzzyGrounder(fieldGroups: Seq[Seq[String]], slops: Seq[Int]) extends Grounder {
 
   override def getName: String = "Fuzzy Grounder"
