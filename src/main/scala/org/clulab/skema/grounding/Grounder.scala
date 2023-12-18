@@ -14,6 +14,11 @@ import java.util.ArrayList
 
 
 trait Grounder {
+  /**
+    * A human-readable way of identifying the grounders
+    *
+    * @return
+    */
   def getName: String
   def ground(
     text: String,
