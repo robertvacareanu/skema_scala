@@ -3,6 +3,8 @@ name := "skema_scala"
 ThisBuild / organization := "org.clulab"
 ThisBuild / scalaVersion := "2.12.18"
 
+resolvers += "clulab" at "https://artifactory.clulab.org/artifactory/sbt-release"
+
 libraryDependencies ++= {
   val luceneVersion = "9.8.0"
   val procVer = "8.1.3"
@@ -14,6 +16,8 @@ libraryDependencies ++= {
     "com.lihaoyi"       %% "upickle"                % "3.1.3",
     "com.lihaoyi"       %% "ujson"                  % "3.1.3",
     "com.typesafe"       % "config"                 % "1.4.3",
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
+    "org.scala-lang.modules"    %% "scala-parser-combinators"   % "1.1.2",
+    "org.clulab"                %% "scala-transformers-encoder" % "0.4.0",
+    "com.microsoft.onnxruntime"  % "onnxruntime"             % "1.13.1",
   )
 }
