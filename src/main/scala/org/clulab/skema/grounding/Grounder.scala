@@ -32,13 +32,6 @@ object Grounder {
     // "fuzzy_matcher"  -> FuzzyGrounder,
     // "neural_matcher" -> NeuralGrounder,
   )
-
-  /**
-    * Build a `Grounder` from a `Config`
-    *
-    * @param config -> The config, containing the necessary information to build a grounder
-    * @return       -> A grounder
-    */
   def mkGrounder(config: Config): Grounder = {
     config.getString("type") match {
       case "exact_matcher"  => new ExactGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq })
@@ -49,8 +42,29 @@ object Grounder {
   }
 }
 
+/**
+  * A `SequentialGrounder` is an implementation of 
+  * `Grounder` that has a sequence of grounders which
+  * are applied sequentially
+  * 
+  * This sequential application allows us to implicitly declare
+  * priorities
+  *
+  */
 class SequentialGrounder extends Grounder {
+  /**
+    * The components of this grounder
+    * It is lazy to delay the construction until first utilization
+    *
+    * @return
+    */
   lazy val components = getComponents()
+
+  /**
+    * Name of this grounder
+    *
+    * @return
+    */
   def getName = "Sequential Grounder"
 
   def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
