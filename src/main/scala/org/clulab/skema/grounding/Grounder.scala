@@ -20,15 +20,6 @@ trait Grounder {
     * @return This grounder's name
     */
   def getName: String
-
-  /**
-    * 
-    *
-    * @param text
-    * @param groundingTargets
-    * @param k
-    * @return
-    */
   def ground(
     text: String,
     groundingTargets: Seq[DKG],
@@ -41,6 +32,13 @@ object Grounder {
     // "fuzzy_matcher"  -> FuzzyGrounder,
     // "neural_matcher" -> NeuralGrounder,
   )
+
+  /**
+    * Build a `Grounder` from a `Config`
+    *
+    * @param config -> The config, containing the necessary information to build a grounder
+    * @return       -> A grounder
+    */
   def mkGrounder(config: Config): Grounder = {
     config.getString("type") match {
       case "exact_matcher"  => new ExactGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq })
