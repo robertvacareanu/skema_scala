@@ -20,6 +20,15 @@ trait Grounder {
     * @return This grounder's name
     */
   def getName: String
+
+  /**
+    * 
+    *
+    * @param text
+    * @param groundingTargets
+    * @param k
+    * @return
+    */
   def ground(
     text: String,
     groundingTargets: Seq[DKG],
