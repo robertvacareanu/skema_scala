@@ -17,7 +17,7 @@ trait Grounder {
   /**
     * A human-readable way of identifying the grounders
     *
-    * @return
+    * @return This grounder's name
     */
   def getName: String
   def ground(
