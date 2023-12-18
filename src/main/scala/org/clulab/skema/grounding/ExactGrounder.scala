@@ -20,7 +20,22 @@ import org.clulab.skema.model.GroundingResultDKG
 import org.clulab.skema.indexing.BuildIndex
 import org.clulab.skema.model.GroundingDetails
 
-
+/**
+  * This grounder attempts to do "exact matching"
+  * As an example, assuming we search for "dog", and we have: 
+  *   - Doc1({"field_a": "dog", "field_b": "dog cat"})
+  *   - Doc2({"field_a": "dog cat", "field_b": "cat dog"})
+  * 
+  * Assuming we search on `field_a` and `field_b`, then Doc1 is a match (because of `field_a`, dog == dog)
+  * Doc2, however, is not an exact match (dog is not == with dog cat, dog is not == with cat dog)
+  * 
+  * So, in other words, this grounder does an "=="
+  *
+  * @param fieldGroups: Seq[Seq[String]] -> Each string (say, if we flatten this), is a field in the doc
+  *                                         They are grouped (i.e. we have Seq[Seq[String]] instead of simply Seq[String])
+  *                                         because of priorities; We first attempt all the field names available in the first
+  *                                         element, then second, etc, as much as needed
+  */
 class ExactGrounder(fieldGroups: Seq[Seq[String]]) extends Grounder {
 
   override def getName: String = "Exact Grounder"
