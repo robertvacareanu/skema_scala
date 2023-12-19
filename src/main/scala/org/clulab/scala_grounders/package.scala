@@ -1,6 +1,6 @@
 package org.clulab
 
-package object skema {
+package object scala_grounders {
   implicit class EnhancedCollections[A, C](coll: C)(implicit converter: C => Seq[A]) {
     def first(f: A => Boolean): Option[A] = {
       for (a <- coll) {

@@ -1,4 +1,4 @@
-package org.clulab.skema.model
+package org.clulab.scala_grounders.model
 
 import ujson.Value
 

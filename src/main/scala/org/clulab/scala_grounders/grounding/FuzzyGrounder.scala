@@ -1,4 +1,4 @@
-package org.clulab.skema.grounding
+package org.clulab.scala_grounders.grounding
 
 
 import com.typesafe.config.ConfigFactory

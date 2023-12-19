@@ -1,4 +1,4 @@
-package org.clulab.skema.grounding
+package org.clulab.scala_grounders.grounding
 
 import com.typesafe.config.ConfigFactory
 import org.apache.lucene.index.{DirectoryReader, IndexWriterConfig, Term}
@@ -68,4 +68,8 @@ class ExactGrounder(fieldGroups: Seq[Seq[String]]) extends Grounder {
     new TermQuery(new Term("em_" + fieldName, "^ " + phrase.toLowerCase + " $"))
   }
 
+}
+object Test extends App {
+  val a = Stream.from(1)
+  println(a)
 }

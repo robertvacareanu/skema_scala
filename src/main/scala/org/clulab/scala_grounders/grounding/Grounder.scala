@@ -1,4 +1,4 @@
-package org.clulab.skema.grounding
+package org.clulab.scala_grounders.grounding
 
 import com.typesafe.config.Config
 import org.clulab.skema.model.DKG
@@ -20,6 +20,15 @@ trait Grounder {
     * @return This grounder's name
     */
   def getName: String
+
+  /**
+    * 
+    *
+    * @param text
+    * @param groundingTargets
+    * @param k
+    * @return
+    */
   def ground(
     text: String,
     groundingTargets: Seq[DKG],
@@ -32,6 +41,13 @@ object Grounder {
     // "fuzzy_matcher"  -> FuzzyGrounder,
     // "neural_matcher" -> NeuralGrounder,
   )
+
+  /**
+    * Build a `Grounder` from a `Config`
+    *
+    * @param config -> The config, containing the necessary information to build a grounder
+    * @return       -> A grounder
+    */
   def mkGrounder(config: Config): Grounder = {
     config.getString("type") match {
       case "exact_matcher"  => new ExactGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq })
@@ -94,6 +110,75 @@ class SequentialGrounder extends Grounder {
           }.force.toSeq // Stop the lazy behavior here
     
     components
+  }
+
+}
+
+object SequentialGrounder {
+  def apply() = new SequentialGrounder()
+}
+
+object GrounderApp extends App {
+
+  example2()
+
+  def getGrounder(): Seq[Grounder] = {
+    val config = ConfigFactory.load().getConfig("grounder")
+    val k = config.getInt("behavior.sieve.k")
+    // Create all the given components
+    // Use stream because we do not know beforehand how many there are 
+    // But there has to be a finite number of them (otherwise they could not have been written to file)
+    val components = Stream.from(1) 
+          .takeWhile(it => config.hasPath(f"behavior.sieve.component${it}")) // Stop once there are no more
+          .map { componentNumber => // Create Grounder
+            val componentConfig = config.getConfig(f"behavior.sieve.component${componentNumber}")
+            Grounder.mkGrounder(componentConfig)
+          }.force.toSeq // Stop the lazy behavior here
+    
+    return components
+  }
+
+  def example1() = {
+    val input = Seq("data/mira_dkg_epi_pretty_small2.json")
+    val data = input.flatMap { path => 
+      using(Source.fromFile(path)) { it =>
+        ujson.read(it.mkString).arr.map(it => DKG.fromJson(it))
+      }
+    }
+
+    val config = ConfigFactory.load().getConfig("grounder")
+    println(config)
+    val k = config.getInt("behavior.sieve.k")
+    // Create all the given components
+    // Use stream because we do not know beforehand how many there are 
+    // But there has to be a finite number of them (otherwise they could not have been written to file)
+    val components = Stream.from(1) 
+          .takeWhile(it => config.hasPath(f"behavior.sieve.component${it}")) // Stop once there are no more
+          .map { componentNumber => // Create Grounder
+            val componentConfig = config.getConfig(f"behavior.sieve.component${componentNumber}")
+            Grounder.mkGrounder(componentConfig)
+          }.force.toSeq // Stop the lazy behavior here
+    println(components)
+    // Run over for result; Call `toStream` to only run grounders until we get `k` results
+    val result = components.toStream.flatMap { grounder =>
+      grounder.ground("autoimmune hemolytic anaemia", data, k)
+    }.take(k).force.toList
+    result.foreach(println)
+  }
+
+  def example2() = {
+    val input = Seq("data/mira_dkg_epi_pretty_small2.json")
+    val data = input.flatMap { path => 
+      using(Source.fromFile(path)) { it =>
+        ujson.read(it.mkString).arr.map(it => DKG.fromJson(it))
+      }
+    }
+
+    val components = new SequentialGrounder()
+    println(components)
+    // Run over for result; Call `toStream` to only run grounders until we get `k` results
+    val result = components.ground("autoimmune hemolytic anaemia", data, 5).toList
+    result.foreach(println)
   }
 
 }
