@@ -1,6 +1,6 @@
 package org.clulab.scala_grounders.grounding
 
-import org.clulab.skema.model.{DKG, GroundingResultDKG, GroundingDetails}
+import org.clulab.scala_grounders.model.{DKG, GroundingResultDKG, GroundingDetails}
 
 import ai.onnxruntime.{OnnxTensor, OrtEnvironment, OrtSession}
 import org.clulab.scala_transformers.encoder.Encoder

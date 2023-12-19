@@ -10,10 +10,10 @@ import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
 import org.apache.lucene.store.FSDirectory
 // import org.clulab.dynet.Utils
 // import org.clulab.processors.clu.CluProcessor
-import org.clulab.skema.{using, first}
+import org.clulab.scala_grounders.{using, first}
 
 import scala.io.Source
-import org.clulab.skema.model.DKG
+import org.clulab.scala_grounders.model.DKG
 import org.apache.lucene.analysis.ngram.NGramTokenizer
 import org.apache.lucene.document.StringField
 import org.apache.lucene.store.RAMDirectory

@@ -1,13 +1,13 @@
 package org.clulab.scala_grounders.grounding
 
 import com.typesafe.config.Config
-import org.clulab.skema.model.DKG
+import org.clulab.scala_grounders.model.DKG
 import com.typesafe.config.ConfigFactory
 
 import collection.JavaConverters._
-import org.clulab.skema.model.GroundingResultDKG
+import org.clulab.scala_grounders.model.GroundingResultDKG
 
-import org.clulab.skema.{using, first}
+import org.clulab.scala_grounders.{using, first}
 
 import scala.io.Source
 import java.util.ArrayList

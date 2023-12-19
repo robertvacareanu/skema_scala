@@ -14,11 +14,11 @@ import org.apache.lucene.search.FuzzyQuery
 import org.apache.lucene.search.BooleanClause
 import org.apache.lucene.analysis.core.WhitespaceTokenizer
 import org.apache.lucene.document.Document
-import org.clulab.skema.{EnhancedType, EnhancedCollections}
-import org.clulab.skema.model.DKG
-import org.clulab.skema.model.GroundingResultDKG
-import org.clulab.skema.indexing.BuildIndex
-import org.clulab.skema.model.GroundingDetails
+import org.clulab.scala_grounders.{EnhancedType, EnhancedCollections}
+import org.clulab.scala_grounders.model.DKG
+import org.clulab.scala_grounders.model.GroundingResultDKG
+import org.clulab.scala_grounders.indexing.BuildIndex
+import org.clulab.scala_grounders.model.GroundingDetails
 
 /**
   * This grounder attempts to do "exact matching"

@@ -2,9 +2,9 @@ package org.clulab.scala_grounders
 
 import upickle.default._
 import scala.io.Source
-import org.clulab.skema.model.DKG
-import org.clulab.skema.grounding.SequentialGrounder
-import org.clulab.skema.model.GroundingResultDKG
+import org.clulab.scala_grounders.model.DKG
+import org.clulab.scala_grounders.grounding.SequentialGrounder
+import org.clulab.scala_grounders.model.GroundingResultDKG
 
 /**
   * (1) usually you want to return something. for future, adjust Neural Grounder threshold to favor recall
