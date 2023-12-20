@@ -20,6 +20,13 @@ import java.util.ArrayList
   *     - (1) what we want to ground
   *     - (2) where we want to ground it (i.e. `grounding candidates` or `grounding targets`)
   *     - (3) how many results to return
+  * 
+  * This trait does not force any particular style of implementation. Some potential implementations are:
+  *   - stateless, which does not do any caching/etc
+  *   - a more efficient version where the class implementing the trait receives the `groundingTargets` as
+  *     a pararameter at construction time, then caches is (i.e. for an exact matcher, we can build the index once; same 
+  *     for fuzzy matcher)
+  * 
   */
 trait Grounder {
   /**
