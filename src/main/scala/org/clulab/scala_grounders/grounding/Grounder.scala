@@ -24,9 +24,9 @@ trait Grounder {
   /**
     * 
     *
-    * @param text
-    * @param groundingTargets
-    * @param k
+    * @param text: String               -> The text to be grounded onto `groundingTargets`
+    * @param groundingTargets: Seq[DKG] -> The candidates on which we wish to ground `text`
+    * @param k: Int                     -> How many results to return
     * @return
     */
   def ground(
