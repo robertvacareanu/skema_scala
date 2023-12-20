@@ -20,13 +20,6 @@ import java.util.ArrayList
   *     - (1) what we want to ground
   *     - (2) where we want to ground it (i.e. `grounding candidates` or `grounding targets`)
   *     - (3) how many results to return
-  * 
-  * This trait does not force any particular style of implementation. Some potential implementations are:
-  *   - stateless, which does not do any caching/etc
-  *   - a more efficient version where the class implementing the trait receives the `groundingTargets` as
-  *     a pararameter at construction time, then caches is (i.e. for an exact matcher, we can build the index once; same 
-  *     for fuzzy matcher)
-  * 
   */
 trait Grounder {
   /**
@@ -42,7 +35,8 @@ trait Grounder {
     * @param text: String               -> The text to be grounded onto `groundingTargets`
     * @param groundingTargets: Seq[DKG] -> The candidates on which we wish to ground `text`
     * @param k: Int                     -> How many results to return
-    * @return
+    * @return a collection of results, in the form of `GroundingResultDKG`; The collection
+    *         is a `Stream` to allow for lazy processing, depending on the size of `k`
     */
   def ground(
     text: String,
