@@ -13,6 +13,14 @@ import scala.io.Source
 import java.util.ArrayList
 
 
+/**
+  * A generic `Grounder` trait which, minimally, forces the implementations to do:
+  *   - define a name for the grounder 
+  *   - implement `ground`, a generic method which has 3 parameters:
+  *     - (1) what we want to ground
+  *     - (2) where we want to ground it (i.e. `grounding candidates` or `grounding targets`)
+  *     - (3) how many results to return
+  */
 trait Grounder {
   /**
     * A human-readable way of identifying the grounders
