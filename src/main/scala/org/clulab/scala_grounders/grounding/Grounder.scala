@@ -84,15 +84,9 @@ class SequentialGrounder extends Grounder {
     * The components of this grounder
     * It is lazy to delay the construction until first utilization
     *
-    * @return
     */
   lazy val components = getComponents()
 
-  /**
-    * Name of this grounder
-    *
-    * @return
-    */
   def getName = "Sequential Grounder"
 
   def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
@@ -102,7 +96,7 @@ class SequentialGrounder extends Grounder {
   }
 
   /**
-    * A constructor function that creates the components for this Sequential Grounder
+    * Creates the components for this Sequential Grounder
     * It looks over the configuration file for the `compoent$i` field inside `sieve`, and
     * constructs each component accordingto its definition
     *
@@ -146,7 +140,6 @@ object GrounderApp extends App {
             val componentConfig = config.getConfig(f"behavior.sieve.component${componentNumber}")
             Grounder.mkGrounder(componentConfig)
           }.force.toSeq // Stop the lazy behavior here
-    
     return components
   }
 
