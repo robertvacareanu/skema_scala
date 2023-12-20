@@ -20,6 +20,13 @@ import java.util.ArrayList
   *     - (1) what we want to ground
   *     - (2) where we want to ground it (i.e. `grounding candidates` or `grounding targets`)
   *     - (3) how many results to return
+  * 
+  * This trait does not force any particular style of implementation. Some potential implementations are:
+  *   - stateless, which does not do any caching/etc
+  *   - a more efficient version where the class implementing the trait receives the `groundingTargets` as
+  *     a pararameter at construction time, then caches is (i.e. for an exact matcher, we can build the index once; same 
+  *     for fuzzy matcher)
+  * 
   */
 trait Grounder {
   /**
@@ -45,11 +52,6 @@ trait Grounder {
   ): Stream[GroundingResultDKG]
 }
 object Grounder {
-  private val nameToGrounder = Map(
-    // "exact_match"    -> ExactGrounder,
-    // "fuzzy_matcher"  -> FuzzyGrounder,
-    // "neural_matcher" -> NeuralGrounder,
-  )
 
   /**
     * Build a `Grounder` from a `Config`
@@ -73,7 +75,8 @@ object Grounder {
   * are applied sequentially
   * 
   * This sequential application allows us to implicitly declare
-  * priorities
+  * priorities, in the form of stopping once the desired number `k` of 
+  * candidates has been returned without running any subsequent grounder
   *
   */
 class SequentialGrounder extends Grounder {
