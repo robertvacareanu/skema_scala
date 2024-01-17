@@ -84,4 +84,6 @@ class FuzzyGrounder(fieldGroups: Seq[Seq[String]], slops: Seq[Int]) extends Grou
     }
   }
 
+  def mkFast(is: IndexSearcher): FastFuzzyGrounder = new FastFuzzyGrounder(fieldGroups, slops, is)
+
 }

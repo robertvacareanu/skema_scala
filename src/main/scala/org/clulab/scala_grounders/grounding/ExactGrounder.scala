@@ -63,6 +63,7 @@ class ExactGrounder(fieldGroups: Seq[Seq[String]]) extends Grounder {
     result
   }
 
+  def mkFast(is: IndexSearcher): FastExactGrounder = new FastExactGrounder(fieldGroups, is)
 
   def exactMatch(fieldName: String, phrase: String): Query = {
     new TermQuery(new Term("em_" + fieldName, "^ " + phrase.toLowerCase + " $"))
