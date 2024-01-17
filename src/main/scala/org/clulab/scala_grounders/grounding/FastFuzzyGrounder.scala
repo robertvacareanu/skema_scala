@@ -77,4 +77,6 @@ class FastFuzzyGrounder(fieldGroups: Seq[Seq[String]], slops: Seq[Int], is: Inde
     }
   }
 
+  def mkFast(is: IndexSearcher): Grounder = this
+
 }

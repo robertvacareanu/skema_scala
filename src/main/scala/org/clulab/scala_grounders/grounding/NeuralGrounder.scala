@@ -6,6 +6,7 @@ import ai.onnxruntime.{OnnxTensor, OrtEnvironment, OrtSession}
 import org.clulab.scala_transformers.tokenizer.Tokenizer
 import org.clulab.scala_transformers.tokenizer.jni.ScalaJniTokenizer
 import java.util.{HashMap => JHashMap}
+import org.apache.lucene.search.IndexSearcher
 
 class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
 
@@ -61,6 +62,8 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
     }
   }
 
+  def mkFast(is: IndexSearcher): Grounder = this
+  
 }
 
 

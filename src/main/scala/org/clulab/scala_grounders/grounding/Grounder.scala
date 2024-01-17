@@ -11,7 +11,10 @@ import org.clulab.scala_grounders.{using, first}
 
 import scala.io.Source
 import java.util.ArrayList
+import org.apache.lucene.search.IndexSearcher
 
+import org.clulab.scala_grounders.indexing.BuildIndex
+import org.apache.lucene.index.DirectoryReader
 
 /**
   * A generic `Grounder` trait which, minimally, forces the implementations to do:
@@ -50,6 +53,8 @@ trait Grounder {
     groundingTargets: Seq[DKG],
     k: Int = 1
   ): Stream[GroundingResultDKG]
+
+  def mkFast(is: IndexSearcher): Grounder
 }
 object Grounder {
 
@@ -79,13 +84,7 @@ object Grounder {
   * candidates has been returned without running any subsequent grounder
   *
   */
-class SequentialGrounder extends Grounder {
-  /**
-    * The components of this grounder
-    * It is lazy to delay the construction until first utilization
-    *
-    */
-  lazy val components = getComponents()
+class SequentialGrounder(components: Seq[Grounder]) extends Grounder {
 
   def getName = "Sequential Grounder"
 
@@ -95,6 +94,14 @@ class SequentialGrounder extends Grounder {
     }.take(k)
   }
 
+  def mkFast(is: IndexSearcher): Grounder = {
+    val fastComponents = components.map(_.mkFast(is))
+    new SequentialGrounder(components=fastComponents)
+  }
+
+}
+
+object SequentialGrounder {
   /**
     * Creates the components for this Sequential Grounder
     * It looks over the configuration file for the `compoent$i` field inside `sieve`, and
@@ -117,16 +124,20 @@ class SequentialGrounder extends Grounder {
     
     components
   }
+  
+  def apply() = new SequentialGrounder(getComponents())
 
-}
-
-object SequentialGrounder {
-  def apply() = new SequentialGrounder()
+  def mkFast(is: IndexSearcher): SequentialGrounder = new SequentialGrounder(getComponents().map(_.mkFast(is)))
 }
 
 object GrounderApp extends App {
 
+  printTime()
   example2()
+  printTime()
+  printTime()
+  example3()
+  printTime()
 
   def getGrounder(): Seq[Grounder] = {
     val config = ConfigFactory.load().getConfig("grounder")
@@ -172,18 +183,52 @@ object GrounderApp extends App {
   }
 
   def example2() = {
-    val input = Seq("data/mira_dkg_epi_pretty_small2.json")
+    val input = Seq("data/mira_dkg_epi_pretty_small.json")
+    val data = input.flatMap { path => 
+      using(Source.fromFile(path)) { it =>
+        ujson.read(it.mkString).arr.map(it => DKG.fromJson(it))
+      }
+    }
+    
+    val components = SequentialGrounder()
+    println(components)
+    // Run over for result; Call `toStream` to only run grounders until we get `k` results
+    (0 until 10).foreach { it =>
+      val result = components.ground("autoimmune hemolytic anaemia", data, 5).toList
+    }
+    // result.foreach(println)
+  }
+
+  def example3() = {
+    val input = Seq("data/mira_dkg_epi_pretty_small.json")
     val data = input.flatMap { path => 
       using(Source.fromFile(path)) { it =>
         ujson.read(it.mkString).arr.map(it => DKG.fromJson(it))
       }
     }
 
-    val components = new SequentialGrounder()
+    val is: IndexSearcher = new IndexSearcher(DirectoryReader.open(BuildIndex.buildIndexFromDocs(data, inMemory=true)))    
+
+    val components = SequentialGrounder().mkFast(is)
     println(components)
     // Run over for result; Call `toStream` to only run grounders until we get `k` results
-    val result = components.ground("autoimmune hemolytic anaemia", data, 5).toList
-    result.foreach(println)
+    (0 until 10).foreach { it =>
+      val result = components.ground("autoimmune hemolytic anaemia", data, 5).toList
+    }
+    // result.foreach(println)
+  }
+
+  def printTime() = {
+    import java.time.LocalTime
+    import java.time.format.DateTimeFormatter
+    val currentTime = LocalTime.now()
+
+    // Define a format for HH:mm:ss
+    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+
+    // Format the current time as HH:mm:ss and print it
+    val formattedTime = currentTime.format(formatter)
+    println(s"Current time (HH:mm:ss.SSS): $formattedTime")
   }
 
 }
