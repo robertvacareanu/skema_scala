@@ -25,6 +25,19 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
     }.sortBy(-_.score).toStream
   }
 
+  /**
+    * This class does a very specific type of forward on very specific models.
+    * Concretely, it needs an onnx model path to a model trained for grounding, 
+    * in the form of taking two strings, concatenated.
+    * For example: "<string1> [SPECIAL SEP TOKEN] <string2>" (e.g., like BERT 
+    * next sentence prediction)
+    * Needs special care based on the model; For example, BERT and BERT-derivatives 
+    * add a special token ([CLS]) at the beginning, then [SEP] to separate between 
+    * the two sequences; Other might add [CLS] at the end, etc.
+    * This implementation does not handle this.
+    *
+    * @param onnxModelPath: String -> Path to an onnx model saved to disk
+    */
   private class UnderlyingNeuralNetworkImplementation(onnxModelPath: String) {
     private val env       = OrtEnvironment.getEnvironment()
     private val session   = env.createSession(onnxModelPath, new OrtSession.SessionOptions())
