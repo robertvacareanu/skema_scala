@@ -70,6 +70,44 @@ class ExactGrounder(fieldGroups: Seq[Seq[String]]) extends Grounder {
   }
 
 }
+
+/**
+  * This grounder is a "Fast" implementation of the "ExactGrounder" (please see @ref org.clulab.scala_grounders.grounding.ExactGrounder)
+  * It is "Fast" because we do not reindex upon every call to "ground"
+  *
+  * @param fieldGroups: Seq[Seq[String]] -> Each string (say, if we flatten this), is a field in the doc
+  *                                         They are grouped (i.e. we have Seq[Seq[String]] instead of simply Seq[String])
+  *                                         because of priorities; We first attempt all the field names available in the first
+  *                                         element, then second, etc, as much as needed
+  * @param is: IndexSearcher             -> The Index Searcher to use
+  */
+class FastExactGrounder(fieldGroups: Seq[Seq[String]], is: IndexSearcher) extends ExactGrounder(fieldGroups) {
+
+  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+    val targets = groundingTargets.map(it => it.id -> it).toMap
+
+    val fieldNames = fieldGroups.toStream.flatMap { it => it.toStream }
+
+    
+    val result = fieldGroups.toStream.flatMap { fieldNames =>
+      fieldNames.toStream.flatMap { fieldName => 
+        // Search over the given fieldName
+        val td = is.search(exactMatch(fieldName, text), k)
+        // Map all the hits to the desired result type (lazily)
+        td.scoreDocs.map { sd => 
+          val id    = is.doc(sd.doc).getField("id").stringValue
+          val score = sd.score 
+          GroundingResultDKG(score, targets(id), GroundingDetails(getName, matchingField=Some(fieldName)))
+        }
+      }.sortBy(-_.score)
+    }
+
+    result
+  }
+
+}
+
+
 object Test extends App {
   val a = Stream.from(1)
   println(a)
