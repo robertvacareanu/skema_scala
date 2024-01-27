@@ -68,7 +68,7 @@ object Grounder {
     config.getString("type") match {
       case "exact_matcher"               => new ExactGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq })
       case "fuzzy_slop_matcher"          => new FuzzySlopGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq }, config.getIntList("slops").asScala.map(_.toInt))
-      case "fuzzy_editdistance_matcher"  => new FuzzySlopGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq }, config.getIntList("slops").asScala.map(_.toInt))
+      case "fuzzy_editdistance_matcher"  => new FuzzyEditDistanceGrounder(config.getList("fieldNames").asScala.toSeq.map { it => it.unwrapped().asInstanceOf[ArrayList[String]].asScala.toSeq }, config.getInt("editDistance"))
       case "neural_matcher"              => new NeuralGrounder(config.getString("modelPath"), config.getDouble("threshold"))
       case it@_ => throw new IllegalArgumentException(f"Unrecognized grounding type (${it})")
     }
