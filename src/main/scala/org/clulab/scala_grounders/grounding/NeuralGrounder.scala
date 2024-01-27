@@ -11,7 +11,7 @@ import org.apache.lucene.search.IndexSearcher
 class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
 
   private val nn = new UnderlyingNeuralNetworkImplementation(modelPath)
-
+  
   override def getName: String = "Neural Grounder"
 
   def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
@@ -23,7 +23,7 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
         dkg=dkg,
         groundingDetails = GroundingDetails(getName, Some("name"), None)
       )
-    }.sortBy(-_.score).toStream
+    }.sortBy(-_.score).filter(_.score > threshold).toStream
   }
 
   /**
@@ -57,6 +57,9 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
       // inputs.put("token_type_ids", OnnxTensor.createTensor(env, Array(tokenTypeIds))) // For DeBERTa it looks like `token_type_ids` are not used; Same result given when all `0`, when `correct` and when 1 item is 4 (when one item is 4 we should have seen an error)
       // val encoderOutput = encoderSession.run(inputs).get(0).getValue.asInstanceOf[Array[Array[Array[Float]]]]
       val result = session.run(inputs).get(0).getValue().asInstanceOf[Array[Array[Float]]].head
+      // println(result.toSeq)
+      // The result is an array of length 2, corresponding to logit for class 0 (not grounded) and 
+      // logit for class 1 (grounded)
       val lastSoftmaxed = Math.exp(result.last) / (Math.exp(result.head) + Math.exp(result.last))
       lastSoftmaxed.toFloat
     }
@@ -75,6 +78,7 @@ object NGrounder extends App {
         DKG("id1", "exposed individuals", None, Seq.empty),
         DKG("id2", "exposed contacts", None, Seq.empty),
         DKG("id3", "number of cases exposed by local unknown exposure", None, Seq.empty),
+        DKG("id4", "crocodile", None, Seq.empty),
       )
     )
     result.foreach(println)
