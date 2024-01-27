@@ -14,4 +14,5 @@ case class GroundingDetails(
   val grounderName: String,
   val matchingField: Option[String] = None,
   val matchingSlop: Option[Int] = None,
+  val editDistance: Option[Int] = None,
 )
