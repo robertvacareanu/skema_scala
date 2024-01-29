@@ -14,10 +14,10 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
   
   override def getName: String = "Neural Grounder"
 
-  def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     // groundingTargets.toStream.take(k).map { it => GroundingResultDKG(0, it, GroundingDetails(getName)) }
     groundingTargets.map { dkg =>
-      val score = nn.forwardSingle(text, dkg.name)
+      val score = nn.forwardSingle(text + context.map(it => "\n" + it).getOrElse(""), dkg.name)
       GroundingResultDKG(
         score=score,
         dkg=dkg,
@@ -73,8 +73,9 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
 object NGrounder extends App {
     val grounder = new NeuralGrounder(modelPath = "/home/rvacareanu/projects_7_2309/skema_python/results/2312/onnx/model.onnx", 0.5)
     val result = grounder.ground(
-      "exposed\nexposed (E)",
-      Seq(
+      text="exposed",
+      context=Some("exposed (E)"),
+      groundingTargets = Seq(
         DKG("id1", "exposed individuals", None, Seq.empty),
         DKG("id2", "exposed contacts", None, Seq.empty),
         DKG("id3", "number of cases exposed by local unknown exposure", None, Seq.empty),

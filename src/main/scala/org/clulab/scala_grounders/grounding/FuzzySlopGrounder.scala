@@ -47,7 +47,7 @@ class FuzzySlopGrounder(fieldGroups: Seq[Seq[String]], slops: Seq[Int]) extends 
   override def getName: String = "Fuzzy Slop Grounder"
 
 
-  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  override def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     val is: IndexSearcher = new IndexSearcher(DirectoryReader.open(BuildIndex.buildIndexFromDocs(groundingTargets, inMemory=true)))
     val targets = groundingTargets.map(it => it.id -> it).toMap
 
@@ -111,7 +111,7 @@ class FuzzySlopGrounder(fieldGroups: Seq[Seq[String]], slops: Seq[Int]) extends 
   */
 class FastFuzzySlopGrounder(fieldGroups: Seq[Seq[String]], slops: Seq[Int], is: IndexSearcher) extends FuzzySlopGrounder(fieldGroups, slops) {
 
-  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  override def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     val targets = groundingTargets.map(it => it.id -> it).toMap
 
     val fields     = fieldGroups.toStream.map(_.toStream)

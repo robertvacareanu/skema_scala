@@ -50,6 +50,7 @@ trait Grounder {
     */
   def ground(
     text: String,
+    context: Option[String],
     groundingTargets: Seq[DKG],
     k: Int = 1
   ): Stream[GroundingResultDKG]
@@ -89,9 +90,9 @@ class SequentialGrounder(components: Seq[Grounder]) extends Grounder {
 
   def getName = "Sequential Grounder"
 
-  def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     components.toStream.flatMap { grounder =>
-      grounder.ground(text, groundingTargets, k)
+      grounder.ground(text, context, groundingTargets, k)
     }.take(k)
   }
 
@@ -110,8 +111,8 @@ object SequentialGrounder {
     *
     * @return A Seq[Grounder]
     */
-  def getComponents(): Seq[Grounder] = {
-    val config = ConfigFactory.load().getConfig("grounder")
+  def getComponents(grounderCofig: Option[Config] = None): Seq[Grounder] = {
+    val config = grounderCofig.getOrElse { ConfigFactory.load().getConfig("grounder") }
     val k = config.getInt("behavior.sieve.k")
     // Create all the given components
     // Use stream because we do not know beforehand how many there are 
@@ -178,7 +179,7 @@ object GrounderApp extends App {
     println(components)
     // Run over for result; Call `toStream` to only run grounders until we get `k` results
     val result = components.toStream.flatMap { grounder =>
-      grounder.ground("autoimmune hemolytic anaemia", data, k)
+      grounder.ground("autoimmune hemolytic anaemia", None, data, k)
     }.take(k).force.toList
     result.foreach(println)
   }
@@ -195,7 +196,7 @@ object GrounderApp extends App {
     println(components)
     // Run over for result; Call `toStream` to only run grounders until we get `k` results
     (0 until 10).foreach { it =>
-      val result = components.ground("autoimmune hemolytic anaemia", data, 5).toList
+      val result = components.ground("autoimmune hemolytic anaemia", None, data, 5).toList
     }
     // result.foreach(println)
   }
@@ -214,7 +215,7 @@ object GrounderApp extends App {
     println(components)
     // Run over for result; Call `toStream` to only run grounders until we get `k` results
     (0 until 10).foreach { it =>
-      val result = components.ground("autoimmune hemolytic anaemia", data, 5).toList
+      val result = components.ground("autoimmune hemolytic anaemia", None, data, 5).toList
     }
     // result.foreach(println)
   }

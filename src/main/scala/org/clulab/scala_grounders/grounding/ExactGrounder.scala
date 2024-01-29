@@ -40,7 +40,7 @@ class ExactGrounder(fieldGroups: Seq[Seq[String]]) extends Grounder {
 
   override def getName: String = "Exact Grounder"
 
-  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  override def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     val is: IndexSearcher = new IndexSearcher(DirectoryReader.open(BuildIndex.buildIndexFromDocs(groundingTargets, inMemory=true)))
     val targets = groundingTargets.map(it => it.id -> it).toMap
 
@@ -83,7 +83,7 @@ class ExactGrounder(fieldGroups: Seq[Seq[String]]) extends Grounder {
   */
 class FastExactGrounder(fieldGroups: Seq[Seq[String]], is: IndexSearcher) extends ExactGrounder(fieldGroups) {
 
-  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  override def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     val targets = groundingTargets.map(it => it.id -> it).toMap
 
     val fieldNames = fieldGroups.toStream.flatMap { it => it.toStream }

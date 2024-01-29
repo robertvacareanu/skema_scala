@@ -46,7 +46,7 @@ class FuzzyEditDistanceGrounder(fieldGroups: Seq[Seq[String]], maxEditDistance: 
   override def getName: String = "Fuzzy Edit Distance Grounder"
 
 
-  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  override def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     val is: IndexSearcher = new IndexSearcher(DirectoryReader.open(BuildIndex.buildIndexFromDocs(groundingTargets, inMemory=true)))
     val targets = groundingTargets.map(it => it.id -> it).toMap
 
@@ -106,7 +106,7 @@ class FastFuzzyEditDistanceGrounder(fieldGroups: Seq[Seq[String]], maxEditDistan
   override def getName: String = "Fuzzy Grounder"
 
 
-  override def ground(text: String, groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
+  override def ground(text: String, context: Option[String], groundingTargets: Seq[DKG], k: Int): Stream[GroundingResultDKG] = {
     val targets = groundingTargets.map(it => it.id -> it).toMap
 
     val fields     = fieldGroups.toStream.map(_.toStream)
