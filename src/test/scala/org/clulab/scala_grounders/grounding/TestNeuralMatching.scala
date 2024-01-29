@@ -68,7 +68,7 @@ class TestNeuralMatching extends FlatSpec with Matchers {
     testDocuments.foreach { testDocument => 
         println("-"*20)
         println(testDocument)
-        val result    = eg.ground(testDocument, groundingTargets, 1).toSeq
+        val result    = eg.ground(testDocument, None, groundingTargets, 1).toSeq
         val resultDkg = result.sortBy(-_.score).map(_.dkg).distinct.take(1)
 
         result.foreach(println)

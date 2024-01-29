@@ -52,7 +52,7 @@ class TestFuzzyEditDistanceMatching extends FlatSpec with Matchers {
   it should "return correct answer when edit distance is 1" in {
     val eg = new FuzzyEditDistanceGrounder(fieldGroups, maxEditDistance = 1)
     
-    val result    = eg.ground(testDocument, groundingTargets, 1).toSeq
+    val result    = eg.ground(testDocument, None, groundingTargets, 1).toSeq
     val resultDkg = result.sortBy(_.score).map(_.dkg).distinct
 
     result.foreach(println)
@@ -75,7 +75,7 @@ class TestFuzzyEditDistanceMatching extends FlatSpec with Matchers {
   it should "return correct answer when edit distance is 2" in {
     val eg = new FuzzyEditDistanceGrounder(fieldGroups, maxEditDistance = 2)
     
-    val result    = eg.ground(testDocument, groundingTargets, 1).toSeq
+    val result    = eg.ground(testDocument, None, groundingTargets, 1).toSeq
     val resultDkg = result.sortBy(-_.score).map(_.dkg).distinct
 
     result.foreach(println)

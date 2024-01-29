@@ -65,7 +65,7 @@ class TestFuzzySlopMatching extends FlatSpec with Matchers {
   it should "return correct answer" in {
     val eg = new FuzzySlopGrounder(fieldGroups, slops)
     
-    val result    = eg.ground(testDocument, groundingTargets, 1).toSeq
+    val result    = eg.ground(testDocument, None, groundingTargets, 1).toSeq
     val resultDkg = result.sortBy(_.score).map(_.dkg).distinct
 
     result.foreach(println)

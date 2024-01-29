@@ -58,7 +58,7 @@ class TestExactMatching extends FlatSpec with Matchers {
   it should "return correct answer" in {
     val eg = new ExactGrounder(fieldGroups)
     
-    val result = eg.ground(testDocument, groundingTargets, 1).toSeq
+    val result = eg.ground(testDocument, None, groundingTargets, 1).toSeq
 
     // Only one document is acceptable
     result.length should be (1)
