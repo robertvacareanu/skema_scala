@@ -5,6 +5,9 @@ import scala.io.Source
 import org.clulab.scala_grounders.model.DKG
 import org.clulab.scala_grounders.grounding.SequentialGrounder
 import org.clulab.scala_grounders.model.GroundingResultDKG
+import org.clulab.scala_grounders.grounding.NeuralGrounder
+import ujson.Value
+import org.clulab.scala_grounders.model.GroundingDetails
 
 /**
   * (1) usually you want to return something. for future, adjust Neural Grounder threshold to favor recall
@@ -19,19 +22,23 @@ import org.clulab.scala_grounders.model.GroundingResultDKG
   *     - discuss the sieve
   *     - discuss the results (emphasize that these results are orthogonal to the previous results, and we will work on the integration of both methods)
   * 
+  * sbt -J-Xmx32g "runMain org.clulab.scala_grounders.Eval"
+  * 
   */
 object Eval extends App {
 
   // def 
 
   val grounder = SequentialGrounder()
+  // val grounder = new NeuralGrounder("/home/rvacareanu/projects_7_2309/skema_python/results/2312/onnx/model.onnx", 0.5)
+  // val grounder = new NeuralGrounder("/home/rvacareanu/projects_7_2309/skema_python/results/240128/onnx/model.onnx", 0.5)
   
   // Loading the data
   val evalLines = using(Source.fromFile("/home/rvacareanu/projects_7_2309/skema_scala/data/eval/prepared_grounding_extractions_documents_5Febbuckymodel_webdocs--COSMOS-data-grounding_extractions_documents_5Febbuckymodel_webdocs--COSMOS-data.jsonl")) { it =>
     it.getLines.map { line =>
       ujson.read(line)
     }.toIndexedSeq
-  }
+  }//.take(20)
 
   val input = Seq("data/mira_dkg_epi_pretty.json")
   val data = input.flatMap { path => 
@@ -53,17 +60,72 @@ object Eval extends App {
 
     val candidateDKGs = examples.map { it => idToData(it("Candidate ID").str) }.toSeq
 
-    val groundings = grounder.ground(text, candidateDKGs, 5).force.toSeq
+    val groundings = grounder.ground(text, Some(context), candidateDKGs, 500).force.toSeq
+    // println("-"*10)
+    // println(groundings)
+    // println(annotations)
+    // println("-"*10)
     (groundings, annotations)
   }
 
+  val resultBaseline = evalLines.map { it =>
+    val examples = it("example").arr
+    val text    = examples.head.apply("Text").str
+    val role    = examples.head.apply("Role").str
+    val context = examples.head.apply("Context").str
+
+    val annotations = examples.map(it => (it("Candidate ID").str, it("Annotation").toString())).toMap
+
+
+    val candidateDKGs = examples.map { it => 
+      val score = if (it("Score").toString == "_") 0.0 else it("Score").num
+      (idToData(it("Candidate ID").str), score) 
+    }.toSeq
+
+    val groundings = candidateDKGs.sortBy(-_._2).map { case (dkg, score) =>
+      GroundingResultDKG(score.toFloat, dkg, GroundingDetails("Baseline"))
+    }
+    // println("-"*10)
+    // println(groundings)
+    // println(annotations)
+    // println("-"*10)
+    (groundings, annotations)
+  }
+
+  println("-" * 20)
+  println(EvalMetrics.mrrOnlyExamplesWithRelevant(resultBaseline)) // 
+  println("-" * 20)
   println(result.count(_._1.isEmpty))
-  System.exit(1)
   println(result.count(_._2.isEmpty))
   println(result.count(_._2.values.map { it => if (it == "0") 0 else 1 }.sum > 0))
   println(result.length)
-  println(EvalMetrics.mrrOnlyExamplesWithRelevant(result))
-  println(EvalMetrics.mrrWithNoDoc(result))
+  println(EvalMetrics.mrrOnlyExamplesWithRelevant(result)) // ~90%
+  /**
+    * [y] TODO more robust handling (thresholds?); 
+    * TODO (Keith's observations): 
+    *   multiple matches => do not choose one arbitrarily (especially for Exact/Fuzzy). 
+    *   Take all those examples and move to the next component (i.e. Neural matcher ONLY over those)
+    * 
+    * TODO analysis when gold is NoDoc, but system returns something
+    *   [y] (1) which component made the mistake
+    *   [y] (2) histogram of NeuralMatcher scores
+    * 
+    * [y] TODO Fuzzy Matcher with edit distance (~<similarity>) (FuzzyMatcherSlop; FuzzyMatcherEditDistance)
+    * 
+    * Generate Numbers
+    *   (1) Neural Grounder
+    *     (i) without fine-tuning (Not Applicable)
+    *     [y] (i) with    fine-tuning
+    *   [y] (2) Sieve
+    * 
+    * Curve with MRR score (X is threshold, Y is MRR (mrrWithNoDoc)) 
+    * 
+    * [y] TODO Ablation test (over all components)
+    * Can you have an universal grounder for multiple domains?
+    * 
+    * TODO Push model to maven (the `.onnx` file) (ask Keith)
+    */
+  println(EvalMetrics.mrrWithNoDoc(result)) 
   println(EvalMetrics.mrrWithNoDoc(result, noDocMinMrrValue= (x) => 1/(x+1)))
   println("\n")
   println(EvalMetrics.meanAveragePrecisionAtKv2(result, k=1))
@@ -71,6 +133,40 @@ object Eval extends App {
   println(EvalMetrics.meanAveragePrecisionAtKv2(result, k=3))
   println(EvalMetrics.meanAveragePrecisionAtKv2(result, k=4))
   println(EvalMetrics.meanAveragePrecisionAtKv2(result, k=5))
+  println("\n")
+  println(EvalMetrics.mrrOnlyExamplesWithRelevantErrorAnalysis(result))
+  println(EvalMetrics.mrrOnlyExamplesWithRelevantNNScores(result))
+  println("-"*20)
+  println("Evaluate the impact of the threshold for the Neural Grounder")
+  // lineCurveMRR(evalLines)
+
+  // val output = (1 to 5).map(_.toFloat).map(_/5).map { threshold =>
+  // def lineCurveMRR(evalLines: Seq[Value], thresholds: Seq[Double] = Seq(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)) = {
+  def lineCurveMRR(evalLines: Seq[Value], thresholds: Seq[Double] = Seq(0.05, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.8, 0.85, 0.9, 0.95)) = {
+    // (0.1,0.311965811965812), (0.2,0.3087606837606838), (0.3,0.3023504273504274), (0.4,0.3023504273504274), (0.5,0.2916666666666667), (0.6,0.2916666666666667), (0.7,0.28846153846153844), (0.8,0.28205128205128205), (0.9,0.2724358974358974)
+    val output = thresholds.map { threshold =>
+      val grounder = new NeuralGrounder("/home/rvacareanu/projects_7_2309/skema_python/results/240128/onnx/model.onnx", threshold)
+      val result = evalLines.map { it =>
+        val examples = it("example").arr
+        val text    = examples.head.apply("Text").str
+        val role    = examples.head.apply("Role").str
+        val context = examples.head.apply("Context").str
+
+        val annotations = examples.map(it => (it("Candidate ID").str, it("Annotation").toString())).toMap
+
+
+        val candidateDKGs = examples.map { it => idToData(it("Candidate ID").str) }.toSeq
+
+        val groundings = grounder.ground(text, Some(context), candidateDKGs, 5).force.toSeq
+        (groundings, annotations)
+      }
+      // (threshold, EvalMetrics.mrrWithNoDoc(result))
+      println((threshold, EvalMetrics.mrrOnlyExamplesWithRelevant(result)))
+      (threshold, EvalMetrics.mrrOnlyExamplesWithRelevant(result))
+    }
+
+    println(output)
+  }
 
   // val ranks = result.zip(evalLines).flatMap { case (groundings, it) =>
 
@@ -169,14 +265,68 @@ object EvalMetrics {
   def mrrOnlyExamplesWithRelevant(results: Seq[(Seq[GroundingResultDKG], Map[String, String])]): Double = {
     val rrs = results.filter(it => it._2.values.exists(it => it == "1" || it == "2")).map { case (returnedDocs, goldDocs) =>
       val firstGood = returnedDocs.zipWithIndex
-        .map { case (doc, id) => (doc, id + 1) } // Start from `1`, not `0`
+        .map   { case (doc, id) => (doc, id + 1) } // Start from `1`, not `0`
         .first { case (doc, id) => goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2" } 
-        .map { case (doc, id) => 1.0/id }
+        .map   { case (doc, id) => 1.0/id }
         .getOrElse(0.0)
 
       firstGood
     }
+    println(rrs)
     rrs.mean()
+  }
+
+  /**
+    * Perform an error analysis on the mistakes 
+    * Keep only the datapoints where there are relevant documents
+    * 
+    */
+  def mrrOnlyExamplesWithRelevantErrorAnalysis(results: Seq[(Seq[GroundingResultDKG], Map[String, String])]): Unit = {
+    val output = results.filter(it => it._2.values.exists(it => it == "1" || it == "2")).flatMap { case (returnedDocs, goldDocs) =>
+      val first = returnedDocs.zipWithIndex
+        .map   { case (doc, id) => (doc, id + 1) } // Start from `1`, not `0`
+        .headOption // First item
+        .flatMap { case (doc, id) => 
+          if(goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2") {
+            None
+          } else {
+            Some(doc.groundingDetails.grounderName)
+          }
+        
+        }
+        // .first { case (doc, id) => goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2" } 
+        // .map   { case (doc, id) => 1.0/id }
+        // .getOrElse(0.0)
+
+      first
+    }
+    println(output)
+  }
+
+  /**
+    * Perform an error analysis on the mistakes 
+    * Keep only the datapoints where there are relevant documents
+    * 
+    */
+  def mrrOnlyExamplesWithRelevantNNScores(results: Seq[(Seq[GroundingResultDKG], Map[String, String])]): Unit = {
+    val output = results.flatMap { case (returnedDocs, goldDocs) =>
+      val first = returnedDocs.zipWithIndex
+        .map   { case (doc, id) => (doc, id + 1) } // Start from `1`, not `0`
+        .headOption // First item
+        .flatMap { case (doc, id) => 
+          if (doc.groundingDetails.grounderName.contains("Neural")) {
+            Some((doc.score, goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2"))
+          } else {
+            None
+          }
+        }
+        // .first { case (doc, id) => goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2" } 
+        // .map   { case (doc, id) => 1.0/id }
+        // .getOrElse(0.0)
+
+      first
+    }
+    println(output)
   }
 
   /**
@@ -197,11 +347,11 @@ object EvalMetrics {
   ): Double = {
     val rrs = results.map { case (returnedDocs, goldDocs) =>
       val firstGood = returnedDocs.zipWithIndex
-        .map { case (doc, id) => (doc, id + 1) } // Start from `1`, not `0`
-        .first { case (doc, id) => goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2" } 
-        .map { case (doc, id) => 1.0/id }
+        .map   { case (doc, id) => (doc, id + 1) } // Start from `1`, not `0`
+        .first { case (doc, id) => goldDocs.getOrElse(doc.dkg.id, "0") == "1" || goldDocs.getOrElse(doc.dkg.id, "0") == "2" } // Get first that is in goldDocs with 1 or 2
+        .map   { case (doc, id) => 1.0/id }
 
-      (firstGood.isEmpty, returnedDocs.isEmpty) match {
+      (firstGood.isEmpty, goldDocs.filter(_._2 != "0").isEmpty) match {
         case (false, false) => firstGood.get // If both are not empty, get the id of the first good
         case (false, true)  => noDocMinMrrValue(returnedDocs.length)
         case (true,  false) => 0.0
