@@ -204,3 +204,4 @@ One can call `mkFast` on an already `Fast` grounder to change the underlying ind
 
 ### More information
 We provide tests, where one can see how each grounder can be used in isolation together with some expected behavior.
+Please see `src/test/scala/org/clulab/scala_grounders`
