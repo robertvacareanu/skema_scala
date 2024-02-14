@@ -1,6 +1,8 @@
 # Sive Grounder
 
-This repository contains the Scala code for grounding
+This repository contains the Scala code for generic grounding.
+
+Grounding means that you have a text you want to ground, together with a list of candidate groundings and the goal is to return the best items from the candidate list (if any). Best can be application dependent, but it typically means the most similar (say, semantically). For example, if we want to ground `"dog"` and the list of candidates is: `["Shiba Inu", "cat", "Brown Bear"]`, then we should (probably) ground it to `"Shiba Inu"` (which is a dog breed).
 
 ## Components
 The project contains `4` types of grounders:
@@ -199,3 +201,6 @@ def ground(
 
 One peculiarity is that we do not provide an index. The initial implementation has been to index on the fly. While this can be ok for small-scale applications, if one repeteadly grounds over the same targets, it can become unnecessarily slow. To address this while maintaining the same simple interface, each grounder has a function called `mkFast`, which receives an `IndexSearcher` as parameter and returns a `Grounder`. The idea is to allow each grounder to store the index locally. Please see the `Fast*` variants (e.g., `org.clulab.scala_grounders.grounding.FastExactGrounder`).
 One can call `mkFast` on an already `Fast` grounder to change the underlying index.
+
+### More information
+We provide tests, where one can see how each grounder can be used in isolation together with some expected behavior.
