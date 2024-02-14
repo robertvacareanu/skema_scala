@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers, Tag}
 import org.clulab.scala_grounders.model.DKG
 
 /**
-  * sbt "testOnly org.clulab.scala_grounders.grounding.TestFuzzyMatching"
+  * sbt "testOnly org.clulab.scala_grounders.grounding.TestFuzzySlopMatching"
   *
   */
 class TestFuzzySlopMatching extends FlatSpec with Matchers {
