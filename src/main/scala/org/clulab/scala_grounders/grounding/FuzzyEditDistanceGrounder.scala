@@ -29,17 +29,13 @@ import org.clulab.scala_grounders.model.GroundingDetails
   * 
   * Assuming we search on `field_a` and `field_b` with max Edit = 1, then Doc1 is a match (because of `field_a`),
   * Doc2 is not because the edit distance between `dog` and `doggg` is larger.
-  * This grounder allows for slops (i.e. gaps in between the search phrase)
   * 
   *
   * @param fieldGroups: Seq[Seq[String]] -> Each string (say, if we flatten this), is a field in the doc
   *                                         They are grouped (i.e. we have Seq[Seq[String]] instead of simply Seq[String])
   *                                         because of priorities; We first attempt all the field names available in the first
   *                                         element, then second, etc, as much as needed
-  * @param slops:       Seq[Int]         -> The gaps that are allowed when seaching; 
-  *                                         For example, a slop=0 means no gap (`dog cat` for `dog cat),
-  *                                         a slop=1 means a gap of 1 item (`dog _ cat` for `dog cat`)
-  *                                         a slop=2 means a gap of 2 items (`dog _ _ cat` for `dog cat`), etc
+  * @param maxEditDistance: Int          -> The maximum edit distance
   */
 class FuzzyEditDistanceGrounder(fieldGroups: Seq[Seq[String]], maxEditDistance: Int) extends Grounder {
 
