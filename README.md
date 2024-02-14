@@ -84,3 +84,17 @@ To go beyond simple lexical match, we provide a Neural Grounder mechanism which 
 
 For this, we use an ONNX model which we call from scala. Please make sure to use the same format as the one used during the training phase of the neural network.
 The way this grounder works is to obtain a score such as: `neural_network(text, grounding_candidate)`. If this score is greater than a threshold (say, `0.5`), then we return this as an yes (i.e., grounded). Otherwise, we do not return it.
+
+### Sequential Grounder
+We allow arbitrary combinations of the aforementioned grounders. Currently, we offer a sequential grounder which is just a list of grounders:
+```python
+[
+    'Exact Matcher',
+    'Fuzzy Slop Matcher',
+    'Fuzzy Edit Distance Matcher',
+    'Exact Matcher',
+]
+```
+
+### Config
+
