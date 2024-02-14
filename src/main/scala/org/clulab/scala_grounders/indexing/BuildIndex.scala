@@ -81,7 +81,7 @@ object BuildIndex extends App {
     // TODO Maybe change?
     doc.add(new StringField("em_name", "^ " + dkg.name + " $", Field.Store.YES))
     dkg.synonyms.filter(_.synonymType.getOrElse("").contains("hasExactSynonym")).zipWithIndex.foreach { case (synonym, idx) =>
-      doc.add(new StringField(f"em_synonym${idx}", "^ " + synonym.value + " $", Field.Store.YES))
+      doc.add(new StringField(f"em_synonym${idx+1}", "^ " + synonym.value + " $", Field.Store.YES))
     }
 
     w.addDocument(doc)
