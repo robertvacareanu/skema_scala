@@ -177,3 +177,25 @@ An explanation of these fields is as follows:
 
 Each component has its own specific fields. For example, a `fuzzy_editdistance_matcher` has `editDistance`. A `fuzzy_slop_matcher` has `slops`, and a `neural_matcher` has `modelPath` and `threshold`. Please notice that a `neural_matcher` does not have `fieldNames` since it operates only over the candidate text.
 
+
+### Indexing
+We index `id`, `name`, `description`, and `synonyms`. Since the document can have multiple `synonyms`, we index them as `synonyms1`, `synonyms2`, etc. 
+While this technique for indexing the `synonyms` can be used to artificially differentiate between different synonyms, we do not do this. 
+We do not have any way to assess which synonym is better, so we treat each synonym as equally good. If one wants to differentiate, please use `fieldNames` like so `[["name"], ["synonym1"], ["synonym2"], ["description"]]` (i.e., notice that instead of `[["name", "synonym1", "synonym2"], ["description"]]`, we did `[["name"], ["synonym1"], ["synonym2"], ["description"]]`, which means that we first try on `name`, and if we successfully grounded `k`, we stop. If not, we try `synonym1`, etc).
+
+The code for indexing is in `org.clulab.scala_grounders.indexing.BuildIndex`, specifically the method called `buildIndexFromPaths`.
+
+### Grounding Interface
+
+We use a functional-like interface, which looks like this:
+```scala
+def ground(
+  text: String,
+  context: Option[String],
+  groundingTargets: Seq[DKG],
+  k: Int = 1
+): Stream[GroundingResultDKG]
+```
+
+One peculiarity is that we do not provide an index. The initial implementation has been to index on the fly. While this can be ok for small-scale applications, if one repeteadly grounds over the same targets, it can become unnecessarily slow. To address this while maintaining the same simple interface, each grounder has a function called `mkFast`, which receives an `IndexSearcher` as parameter and returns a `Grounder`. The idea is to allow each grounder to store the index locally. Please see the `Fast*` variants (e.g., `org.clulab.scala_grounders.grounding.FastExactGrounder`).
+One can call `mkFast` on an already `Fast` grounder to change the underlying index.
