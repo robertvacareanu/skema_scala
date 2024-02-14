@@ -89,12 +89,91 @@ The way this grounder works is to obtain a score such as: `neural_network(text, 
 We allow arbitrary combinations of the aforementioned grounders. Currently, we offer a sequential grounder which is just a list of grounders:
 ```python
 [
-    'Exact Matcher',
-    'Fuzzy Slop Matcher',
-    'Fuzzy Edit Distance Matcher',
-    'Exact Matcher',
+    'Exact Matcher', # 1
+    'Fuzzy Slop Matcher (slops=[0,1,2,4])', # 2
+    'Fuzzy Edit Distance Matcher (max_edit = 0)', # 3
+    'Fuzzy Edit Distance Matcher (max_edit = 1)', # 4
+    'Fuzzy Edit Distance Matcher (max_edit = 2)', # 5
+    'Neural Matcher (threshold = 0.8)', # 6
+    'Neural Matcher (threshold = 0.6)', # 7
+    'Neural Matcher (threshold = 0.5)', # 8
 ]
 ```
 
+As highlighted in the example above, we can have the same component multiple times, with different parameters.
+The way the Sequential Grounder will work is to try to ground and successfully return `k` candidates. 
+It will first try `Exact Matcher` (component `1`). If this component already returns `k` (or more) candidates, we do not proceed to the next component.
+However, if this component only returns `n` candidates, where `n < k`, then we proceed to the next component `Fuzzy Slop Matcher (slops=[0,1,2,4])` (component `2`) and
+try to successfully return `k-n` candidates. The same procedure continues until ee get to `k` candidates or we used all the components.
+
+Therefore, it is wise to order these components based on their precision, where the higher precision components come first.
+
+#### How is the functionality of early stopping implemented?
+
+The implementation of early stopping is done using `Stream` in scala:
+```scala
+components.toStream.flatMap { grounder =>
+  grounder.ground(text, context, groundingTargets, k)
+}.take(k)
+```
+
+Each `grounder` returns a stream. We have a `take(k)` at the end, which ensures that we only to the minimum amount of work necessary to populate the result with `k` items.
+This early stopping behavior is specific to `Stream`. Please see the concepts of `lazy collection` if you are interested in reading more.
+
 ### Config
+
+We alllow dynamic configuration of the `Sequential Grounder`, using `reference.conf`. Please see an example below.
+```
+sieve {
+  # How many results to return (overridable)
+  k = 5
+  # Details of each component
+  # Contains details such as:
+  #   - type (this is from a predefined list)
+  #   - fieldNames (over which fields will it operate)
+  # 
+  component1 {
+    name = "Exact Matcher"
+    type = "exact_matcher"
+    # What fields to search on
+    # Order is important; Left -> More important (will be searched first)
+    # fieldNames = ["name", "synonym1", "synonym2", "synonym3", "synonym4", "synonym5", "synonym6", "synonym7", "synonym8", "synonym9", "synonym10"]
+    fieldNames = [["name", "synonym1", "synonym2", "synonym3", "synonym4", "synonym5", "synonym6", "synonym7", "synonym8", "synonym9", "synonym10"], ]
+  }
+  component2 {
+    name = "Fuzzy Edit Distance Matcher"
+    type = "fuzzy_editdistance_matcher"
+    # fieldNames = ["name", "synonym1", "synonym2", "synonym3", "synonym4", "synonym5", "synonym6", "synonym7", "synonym8", "synonym9", "synonym10", "description"]
+    fieldNames = [["name", "synonym1", "synonym2", "synonym3", "synonym4", "synonym5", "synonym6", "synonym7", "synonym8", "synonym9", "synonym10"], ["description"]]
+    editDistance = 2
+  }
+  component3 {
+    name = "Fuzzy Slop Matcher"
+    type = "fuzzy_slop_matcher"
+    # fieldNames = ["name", "synonym1", "synonym2", "synonym3", "synonym4", "synonym5", "synonym6", "synonym7", "synonym8", "synonym9", "synonym10", "description"]
+    fieldNames = [["name", "synonym1", "synonym2", "synonym3", "synonym4", "synonym5", "synonym6", "synonym7", "synonym8", "synonym9", "synonym10"], ["description"]]
+    slops = [1, 2, 4, 8]
+  }
+  component4 {
+    name = "Neural Matcher"
+    type = "neural_matcher"
+
+    modelPath = "/home/rvacareanu/projects_7_2309/skema_python/results/240128/onnx/model.onnx" # Where to load the model from (overridable)
+    threshold = 0.5 # Ground based on score (overridable)
+  }
+}
+```
+
+Please notice that we enumerate each component like so: `component1`, `component2`, etc. Please use consecutive numbers, as when we create the grounder we stop once `component<i>` is not present.
+
+An explanation of these fields is as follows:
+- `name` -> The name of the grounder. We use it only to specify additional details once the grounded has ended;
+- `type` -> This field specifies which type of grounder is that component. It has to be one of the following:
+  - `exact_matcher`
+  - `fuzzy_slop_matcher`
+  - `fuzzy_editdistance_matcher`
+  - `neural_matcher`
+- `fieldNames` -> This specifies on which fields from the document to do the searching. Please notice that it is a list of lists `[["name", "synonym1"], ["description"]]`. This is because `["name", "synonym1"]` will have the same priority, which is higher than `["description"]`. In other words, we allow to do early stopping on fields as well, and we consider that a match on `"name"`, for example, is better than a match on `"description"`. Also, please notice the fields `synonym1`, etc. The original documents contain a field called `synonym` which is a list. We index every synonym in a different field. We add `1`, `2`, etc to differentiate between multiple synonyms.
+
+Each component has its own specific fields. For example, a `fuzzy_editdistance_matcher` has `editDistance`. A `fuzzy_slop_matcher` has `slops`, and a `neural_matcher` has `modelPath` and `threshold`. Please notice that a `neural_matcher` does not have `fieldNames` since it operates only over the candidate text.
 
