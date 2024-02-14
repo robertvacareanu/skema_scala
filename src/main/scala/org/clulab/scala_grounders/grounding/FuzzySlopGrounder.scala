@@ -38,7 +38,7 @@ import org.clulab.scala_grounders.model.GroundingDetails
   *                                         because of priorities; We first attempt all the field names available in the first
   *                                         element, then second, etc, as much as needed
   * @param slops:       Seq[Int]         -> The gaps that are allowed when seaching; 
-  *                                         For example, a slop=0 means no gap (`dog cat` for `dog cat),
+  *                                         For example, a slop=0 means no gap (`dog cat` for `dog cat`),
   *                                         a slop=1 means a gap of 1 item (`dog _ cat` for `dog cat`)
   *                                         a slop=2 means a gap of 2 items (`dog _ _ cat` for `dog cat`), etc
   */
