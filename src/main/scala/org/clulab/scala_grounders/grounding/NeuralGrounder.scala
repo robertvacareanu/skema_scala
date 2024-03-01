@@ -7,6 +7,7 @@ import org.clulab.scala_transformers.tokenizer.Tokenizer
 import org.clulab.scala_transformers.tokenizer.jni.ScalaJniTokenizer
 import java.util.{HashMap => JHashMap}
 import org.apache.lucene.search.IndexSearcher
+import java.io.DataInputStream
 
 class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
 
@@ -40,8 +41,26 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
     * @param onnxModelPath: String -> Path to an onnx model saved to disk
     */
   private class UnderlyingNeuralNetworkImplementation(onnxModelPath: String) {
-    private val env       = OrtEnvironment.getEnvironment()
-    private val session   = env.createSession(onnxModelPath, new OrtSession.SessionOptions())
+
+    
+    protected def ortSessionFromResource(resourceName: String): OrtSession = {
+      val connection = getClass.getResource(resourceName).openConnection
+      val contentLength = connection.getContentLength
+      val bytes = new Array[Byte](contentLength)
+      val inputStream = getClass.getResourceAsStream(resourceName)
+      val dataInputStream = new DataInputStream(inputStream)
+
+      try {
+        dataInputStream.readFully(bytes)
+      }
+      finally {
+        dataInputStream.close()
+      }
+      env.createSession(bytes, new OrtSession.SessionOptions)
+    }
+
+    private val env       = OrtEnvironment.getEnvironment
+    private val session   = ortSessionFromResource(onnxModelPath)
     private val tokenizer = ScalaJniTokenizer("microsoft/deberta-v3-base", addPrefixSpace=false)
 
     def forwardSingle(text1: String, text2: String): Float = {
@@ -71,7 +90,8 @@ class NeuralGrounder(modelPath: String, threshold: Double) extends Grounder {
 
 
 object NGrounder extends App {
-    val grounder = new NeuralGrounder(modelPath = "/home/rvacareanu/projects_7_2309/skema_python/results/2312/onnx/model.onnx", 0.5)
+  
+    val grounder = new NeuralGrounder("/org/clulab/grounders/model.onnx", 0.5)
     val result = grounder.ground(
       text="exposed",
       context=Some("exposed (E)"),

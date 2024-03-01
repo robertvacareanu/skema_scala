@@ -4,6 +4,7 @@ ThisBuild / organization := "org.clulab"
 ThisBuild / scalaVersion := "2.12.18"
 
 resolvers += "clulab" at "https://artifactory.clulab.org/artifactory/sbt-release"
+resolvers += "Artifactory" at "https://artifactory.clulab.org/artifactory/sbt-release-local/"
 
 libraryDependencies ++= {
   val luceneVersion = "9.8.0"
@@ -19,5 +20,7 @@ libraryDependencies ++= {
     "org.scala-lang.modules"    %% "scala-parser-combinators"   % "1.1.2",
     "org.clulab"                %% "scala-transformers-encoder" % "0.4.0",
     "com.microsoft.onnxruntime"  % "onnxruntime"             % "1.13.1",
+    // "org.clulab" % "grounders_onnx_model" % "1.0.2" from "https://artifactory.clulab.org/artifactory/sbt-release-local/org/clulab/grounders_onnx_model/1.0.2/grounders_onnx_model-1.0.2.jar"
+    "org.clulab" % "grounders_onnx_model" % "1.0.2"
   )
 }
