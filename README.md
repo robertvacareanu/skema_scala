@@ -1,4 +1,4 @@
-# Sive Grounder
+# Sieve Grounder
 
 This repository contains the Scala code for generic grounding.
 
