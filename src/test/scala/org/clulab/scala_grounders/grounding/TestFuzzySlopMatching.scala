@@ -83,8 +83,8 @@ class TestFuzzySlopMatching extends FlatSpec with Matchers {
     resultDkg(1) should be (groundingTargets(3)) // Because it should have a higher score, and we sorted
 
     // Check details
-    result(0).groundingDetails.grounderName should be ("Fuzzy Grounder")
-    result(1).groundingDetails.grounderName should be ("Fuzzy Grounder")
+    result(0).groundingDetails.grounderName should be ("Fuzzy Slop Grounder")
+    result(1).groundingDetails.grounderName should be ("Fuzzy Slop Grounder")
 
   }
 
