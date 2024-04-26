@@ -30,17 +30,15 @@ object Eval extends App {
   // def 
 
   val grounder = SequentialGrounder()
-  // val grounder = new NeuralGrounder("/home/rvacareanu/projects_7_2309/skema_python/results/2312/onnx/model.onnx", 0.5)
-  // val grounder = new NeuralGrounder("/home/rvacareanu/projects_7_2309/skema_python/results/240128/onnx/model.onnx", 0.5)
   
   // Loading the data
-  val evalLines = using(Source.fromFile("/home/rvacareanu/projects_7_2309/skema_scala/data/eval/prepared_grounding_extractions_documents_5Febbuckymodel_webdocs--COSMOS-data-grounding_extractions_documents_5Febbuckymodel_webdocs--COSMOS-data.jsonl")) { it =>
+  val evalLines = using(Source.fromFile("./data/eval/prepared_grounding_extractions_documents_5Febbuckymodel_webdocs--COSMOS-data-grounding_extractions_documents_5Febbuckymodel_webdocs--COSMOS-data.jsonl")) { it =>
     it.getLines.map { line =>
       ujson.read(line)
     }.toIndexedSeq
   }//.take(20)
 
-  val input = Seq("data/mira_dkg_epi_pretty.json")
+  val input = Seq("./data/mira_dkg_epi_pretty.json")
   val data = input.flatMap { path => 
     using(Source.fromFile(path)) { it =>
       ujson.read(it.mkString).arr.map(it => DKG.fromJson(it))
