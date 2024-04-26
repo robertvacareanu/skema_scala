@@ -201,6 +201,7 @@ def ground(
 
 One peculiarity is that we do not provide an index. The initial implementation has been to index on the fly. While this can be ok for small-scale applications, if one repeteadly grounds over the same targets, it can become unnecessarily slow. To address this while maintaining the same simple interface, each grounder has a function called `mkFast`, which receives an `IndexSearcher` as parameter and returns a `Grounder`. The idea is to allow each grounder to store the index locally. Please see the `Fast*` variants (e.g., `org.clulab.scala_grounders.grounding.FastExactGrounder`).
 One can call `mkFast` on an already `Fast` grounder to change the underlying index.
+For convenience, an overloaded version of `mkFast` is provided, which takes a `groundingTargets: Seq[DKG]` as parameter (instead of `is: IndexSearcher`), but only for `SequentialGrounder`. The underlying implementation is simple: just create an `IndexSearcher` and call the original `mkFast`.
 
 ### More information
 We provide tests, where one can see how each grounder can be used in isolation together with some expected behavior.
