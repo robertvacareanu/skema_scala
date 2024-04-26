@@ -101,6 +101,11 @@ class SequentialGrounder(components: Seq[Grounder]) extends Grounder {
     new SequentialGrounder(components=fastComponents)
   }
 
+  def mkFast(groundingTargets: Seq[DKG]): Grounder = {
+    val is: IndexSearcher = new IndexSearcher(DirectoryReader.open(BuildIndex.buildIndexFromDocs(groundingTargets, inMemory=true)))
+    mkFast(is)
+  }
+
 }
 
 object SequentialGrounder {
