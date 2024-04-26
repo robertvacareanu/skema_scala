@@ -78,7 +78,7 @@ object Eval extends App {
 
 
     val candidateDKGs = examples.map { it => 
-      val score = if (it("Score").toString == "_") 0.0 else it("Score").num
+      val score = it("Score").numOpt.getOrElse(0.0)
       (idToData(it("Candidate ID").str), score) 
     }.toSeq
 
@@ -93,7 +93,7 @@ object Eval extends App {
   }
 
   println("-" * 20)
-  println(EvalMetrics.mrrOnlyExamplesWithRelevant(resultBaseline)) // 
+  println(EvalMetrics.mrrOnlyExamplesWithRelevant(resultBaseline)) // 0.5668771570489666
   println("-" * 20)
   println(result.count(_._1.isEmpty))
   println(result.count(_._2.isEmpty))
