@@ -11,7 +11,7 @@ class TestFuzzySlopMatching extends FlatSpec with Matchers {
 
   /**
     * These are the documents over which we ground our candidates
-    * More explicitly, let us assume we want to ground a new documnet with name: "dog dog"
+    * More explicitly, let us assume we want to ground a new document with name: "dog dog"
     * This document will be grounded to the DKGs with ids "id3" and "id4" (because of the fuzziness)
     * The fuzziness means that we check for inclusions as well (i.e., there can be gaps, it is not mandatory
     * to be "==", etc); However, it is mandatory for all words to be present (which is why we do not ground to the

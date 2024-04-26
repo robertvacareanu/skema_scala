@@ -11,7 +11,7 @@ class TestExactMatching extends FlatSpec with Matchers {
 
   /**
     * These are the documents over which we ground our candidates
-    * More explicitly, let us assume we want to ground a new documnet with name: "dog"
+    * More explicitly, let us assume we want to ground a new document with name: "dog"
     * This document will be grounded to the first DKG below (since name="dog")
     * 
     * If we want to ground a new document with name "cute dog", no document will be grounded
