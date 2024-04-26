@@ -56,6 +56,7 @@ trait Grounder {
   ): Stream[GroundingResultDKG]
 
   def mkFast(is: IndexSearcher): Grounder
+
 }
 object Grounder {
 
