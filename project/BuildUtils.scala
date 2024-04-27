@@ -36,7 +36,7 @@ object BuildUtils {
   // One shouldn't use the giter8 packaged format because of backslashes in Windows.
   def pkgToDir(pkg: String): String = pkg.replace('.', '/')
 
-  val artifactory = true
+  val artifactory = false
   val compression = true
 }
 
