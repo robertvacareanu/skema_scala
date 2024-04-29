@@ -12,7 +12,7 @@ class TestNeuralMatching extends FlatSpec with Matchers {
 
   /**
     * These are the documents over which we ground our candidates
-    * More explicitly, let us assume we want to ground a new documnet with name: "shiba inu"
+    * More explicitly, let us assume we want to ground a new document with name: "shiba inu"
     * The document with the highest score should be the first DKG below (since name="dog")
     */
   val groundingTargets = Seq(

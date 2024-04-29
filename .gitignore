@@ -15,11 +15,12 @@ project/plugins/project/
 .lib/
 
 # metals / node files
-project/metals.sbt
+metals.sbt
 .metals/
 node_modules/
 yarn.lock
 .bloop
+.bsp
 .next/
 ## tool for jumping into methods.
 .ctags
@@ -29,4 +30,4 @@ yarn.lock
 .vscode
 data
 index
-project
+# project

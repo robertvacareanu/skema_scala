@@ -4,7 +4,6 @@ ThisBuild / organization := "org.clulab"
 ThisBuild / scalaVersion := "2.12.18"
 
 resolvers += "clulab" at "https://artifactory.clulab.org/artifactory/sbt-release"
-resolvers += "Artifactory" at "https://artifactory.clulab.org/artifactory/sbt-release-local/"
 
 libraryDependencies ++= {
   val luceneVersion = "9.8.0"
